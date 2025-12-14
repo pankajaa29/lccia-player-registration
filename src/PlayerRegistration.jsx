@@ -88,7 +88,7 @@ export default function PlayerRegistration() {
           <img
             src="/lccia-logo.png"
             alt="LCCIA Logo"
-            style={{ height: "85px", marginBottom: "12px" }}
+            style={{ height: "120px", marginBottom: "16px" }}
           />
           <h2 style={{ margin: 0 }}>LCCIA Sports League – 2026</h2>
           <h3 style={{ margin: "6px 0", fontWeight: "normal", color: "#555" }}>
