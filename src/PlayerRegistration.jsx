@@ -33,7 +33,11 @@ export default function PlayerRegistration() {
     try {
       const f = e.target;
 
-      const docRef = await addDoc(collection(db, "players"), {
+      // ✅ SINGLE numeric registration number
+      const registrationNumber = "2026" + String(Date.now()).slice(-6);
+
+      await addDoc(collection(db, "players"), {
+        registrationNumber,
         name: f.name.value,
         dob: f.dob.value,
         mobile: f.mobile.value,
@@ -48,7 +52,7 @@ export default function PlayerRegistration() {
       });
 
       alert(
-        `Registration successful!\n\nRegistration ID:\n${docRef.id}`
+        `Registration successful!\n\nRegistration Number:\n${registrationNumber}`
       );
 
       const redirectUrl =
@@ -56,7 +60,7 @@ export default function PlayerRegistration() {
         "?" +
         REG_ID_ENTRY +
         "=" +
-        encodeURIComponent(docRef.id) +
+        encodeURIComponent(registrationNumber) +
         "&" +
         NAME_ENTRY +
         "=" +
@@ -179,7 +183,6 @@ export default function PlayerRegistration() {
 
         <br />
 
-        {/* BUTTON */}
         <button
           type="submit"
           style={{
