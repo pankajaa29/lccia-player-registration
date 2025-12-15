@@ -145,7 +145,7 @@ export default function PlayerRegistration() {
         <input name="teamName" style={inputStyle} />
         <br /><br />
 
-        {/* CHARGES – UPDATED */}
+        {/* CHARGES */}
         <div
           style={{
             background: "#fff3e8",
@@ -155,14 +155,29 @@ export default function PlayerRegistration() {
           }}
         >
           <strong>Next Step – Player Charges</strong>
-<p style={{ marginTop: "6px" }}>
-  Pro Player: ₹750 per player<br />
-  Family Player: ₹300 per player
-</p>
+          <p style={{ marginTop: "6px" }}>
+            Pro Player: ₹750 per player<br />
+            Family Player: ₹300 per player
+          </p>
 
           <em>
             Payment gateway details will be shared after submission of interest.
           </em>
+
+          {/* ✅ NEW HELP TEXT */}
+          <p style={{ marginTop: "10px", fontSize: "14px" }}>
+            (If you know your team owner please connect for player registration
+            payment with him/her)
+          </p>
+
+          <p style={{ fontSize: "14px" }}>
+            <strong>Player Registration Help connect:</strong><br />
+            Lokesh Patil – 8452098089<br />
+            Amit Dahake – 9552526073<br />
+            Chetan Patil – 98816 20620<br />
+            Swapnil Bhole – 9011128222<br />
+            Prafull Patil – 9096346987
+          </p>
         </div>
 
         {/* DOCUMENTS */}
