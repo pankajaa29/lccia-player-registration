@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase"; // SAME firebase file used by PlayerRegistration
+import { db } from "../firebase";
 
 const containerStyle = {
   maxWidth: "800px",
@@ -63,7 +63,6 @@ function TORRegistration() {
     }
 
     setLoading(true);
-
     const registrationNumber = generateRegistrationNumber();
 
     try {
@@ -102,7 +101,7 @@ function TORRegistration() {
     }
   };
 
-  /* ---------------- SUCCESS SCREEN ---------------- */
+  /* ---------- SUCCESS SCREEN ---------- */
   if (successData) {
     return (
       <div style={containerStyle}>
@@ -121,7 +120,7 @@ function TORRegistration() {
     );
   }
 
-  /* ---------------- FORM UI ---------------- */
+  /* ---------- FORM UI ---------- */
   return (
     <div style={containerStyle}>
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
@@ -162,10 +161,13 @@ function TORRegistration() {
       </p>
 
       <p>
-        <strong>For any queries:</strong><br />
-        Nikhil 9975128111<br />
-        Lokesh 8452098089<br />
-        Bhushan 9371458989
+        <strong>For any queries:</strong><br /><br />
+        <strong>PCMC Chapter :-</strong><br />
+        Bhushan Gajare – 9371458989<br />
+        Lokesh Patil – 8452098089<br /><br />
+        <strong>Pune Chapter :-</strong><br />
+        Narendra Mahajan – 9822197642<br />
+        Govinda Mahajan – 9075039501
       </p>
 
       <hr />
@@ -175,153 +177,4 @@ function TORRegistration() {
         <input
           type="text"
           name="ownerName"
-          value={formData.ownerName}
-          onChange={handleChange}
-          required
-          style={inputStyle}
-        />
-
-        <label style={labelStyle}>
-          Do you have LCCIA active membership till 31 Dec 2025? *
-        </label>
-        <p style={{ fontSize: "14px" }}>
-          (For membership query contact Dr. Pawan Bhole – 9890610234)
-        </p>
-
-        <label>
-          <input
-            type="radio"
-            name="hasMembership"
-            value="Yes"
-            onChange={handleChange}
-            required
-          />{" "}
-          Yes
-        </label>
-        <br />
-        <label>
-          <input
-            type="radio"
-            name="hasMembership"
-            value="No"
-            onChange={handleChange}
-          />{" "}
-          No
-        </label>
-
-        <br /><br />
-
-        <label style={labelStyle}>Category You wish to play *</label>
-        <label>
-          <input
-            type="radio"
-            name="category"
-            value="Pro"
-            onChange={handleChange}
-            required
-          />{" "}
-          Pro
-        </label>
-        <br />
-        <label>
-          <input
-            type="radio"
-            name="category"
-            value="Family"
-            onChange={handleChange}
-          />{" "}
-          Family
-        </label>
-
-        <br /><br />
-
-        <label style={labelStyle}>Mobile No. (WhatsApp) *</label>
-        <input
-          type="tel"
-          name="mobile"
-          value={formData.mobile}
-          onChange={handleChange}
-          required
-          style={inputStyle}
-        />
-
-        <label style={labelStyle}>Email *</label>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          style={inputStyle}
-        />
-
-        <label style={labelStyle}>Team Name</label>
-        <input
-          type="text"
-          name="teamName"
-          value={formData.teamName}
-          onChange={handleChange}
-          style={inputStyle}
-        />
-
-        <h3>Fees Details & Discount Info</h3>
-        <p>
-          <strong>
-            Team Ownership Fees: INR 15,000/- for Pro Team & INR 10,000/- for
-            Family Team
-          </strong>
-          <br />
-          (If participated in previous seasons – Pro: INR 11,000 / Family:
-          INR 7,000)
-        </p>
-
-        <p style={{ fontWeight: 600, marginTop: "12px" }}>
-          Following Discounts are applicable for Active LCCIA Membership on top
-          of Above
-        </p>
-
-        <ul>
-          <li>Primary – 10%</li>
-          <li>Associate – 20%</li>
-          <li>Classic – 30%</li>
-          <li>Life Membership – 50%</li>
-        </ul>
-
-        <label style={{ display: "block", marginTop: "16px" }}>
-          <input
-            type="checkbox"
-            name="declaration"
-            checked={formData.declaration}
-            onChange={handleChange}
-          />{" "}
-          <strong>
-            DECLARATION*: We hereby agree that we have read and understood all
-            Rules & Regulations.
-          </strong>
-        </label>
-
-        <br />
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "14px",
-            backgroundColor: "#D05F02",
-            color: "#fff",
-            border: "none",
-            borderRadius: "10px",
-            fontSize: "16px",
-            cursor: "pointer",
-            opacity: loading ? 0.7 : 1,
-          }}
-        >
-          {loading ? "Submitting..." : "Proceed to Payment & Upload Screenshot"}
-        </button>
-      </form>
-    </div>
-  );
-}
-
-export default TORRegistration;
+          value={formData.own
