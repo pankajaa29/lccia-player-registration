@@ -155,10 +155,11 @@ export default function PlayerRegistration() {
           }}
         >
           <strong>Next Step – Player Charges</strong>
-          <p style={{ marginTop: "6px" }}>
-            Pro Player: ₹750 per player<br />
-            Family Player: ₹300 per player
-          </p>
+<p style={{ marginTop: "6px" }}>
+  Pro Player: ₹750 per player<br />
+  Family Player: ₹300 per player
+</p>
+
           <em>
             Payment gateway details will be shared after submission of interest.
           </em>
