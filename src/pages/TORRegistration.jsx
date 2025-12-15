@@ -42,9 +42,8 @@ function TORRegistration() {
     declaration: false,
   });
 
-  const generateRegistrationNumber = () => {
-    return `TOR2026${Math.floor(1000 + Math.random() * 9000)}`;
-  };
+  const generateRegistrationNumber = () =>
+    `TOR2026${Math.floor(1000 + Math.random() * 9000)}`;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -100,25 +99,6 @@ function TORRegistration() {
       setLoading(false);
     }
   };
-
-  /* ---------- SUCCESS SCREEN ---------- */
-  if (successData) {
-    return (
-      <div style={containerStyle}>
-        <div style={{ textAlign: "center" }}>
-          <img
-            src="/lccia-logo.png"
-            alt="LCCIA Logo"
-            style={{ maxWidth: "220px", marginBottom: "20px" }}
-          />
-          <h2>Registration Successful</h2>
-          <p>Your TOR Registration Number</p>
-          <h3>{successData.registrationNumber}</h3>
-          <p>Redirecting to payment upload form…</p>
-        </div>
-      </div>
-    );
-  }
 
   /* ---------- FORM UI ---------- */
   return (
@@ -263,6 +243,30 @@ function TORRegistration() {
           style={inputStyle}
         />
 
+        {/* ✅ FEES DETAILS & DISCOUNT INFO (RESTORED) */}
+        <h3>Fees Details & Discount Info</h3>
+        <p>
+          <strong>
+            Team Ownership Fees: INR 15,000/- for Pro Team & INR 10,000/- for
+            Family Team
+          </strong>
+          <br />
+          (If participated in previous seasons – Pro: INR 11,000 / Family:
+          INR 7,000)
+        </p>
+
+        <p style={{ fontWeight: 600, marginTop: "12px" }}>
+          Following Discounts are applicable for Active LCCIA Membership on top
+          of Above
+        </p>
+
+        <ul>
+          <li>Primary – 10%</li>
+          <li>Associate – 20%</li>
+          <li>Classic – 30%</li>
+          <li>Life Membership – 50%</li>
+        </ul>
+
         <label style={{ display: "block", marginTop: "16px" }}>
           <input
             type="checkbox"
@@ -295,6 +299,24 @@ function TORRegistration() {
         >
           {loading ? "Submitting..." : "Proceed to Payment & Upload Screenshot"}
         </button>
+        {successData && (
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "16px",
+      background: "#e8f5e9",
+      borderRadius: "10px",
+      textAlign: "center",
+    }}
+  >
+    <h3 style={{ margin: 0 }}>Registration Successful</h3>
+    <p>Your TOR Registration Number</p>
+    <strong>{successData.registrationNumber}</strong>
+    <p style={{ marginTop: "10px" }}>
+      Redirecting to payment upload form…
+    </p>
+  </div>
+)}
       </form>
     </div>
   );
