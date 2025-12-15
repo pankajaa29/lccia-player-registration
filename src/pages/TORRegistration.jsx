@@ -48,10 +48,10 @@ function TORRegistration() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: type === "checkbox" ? checked : value,
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -87,7 +87,7 @@ function TORRegistration() {
       setTimeout(() => {
         const googleFormUrl =
           "https://docs.google.com/forms/d/e/1FAIpQLScSoTf9_184aTnQb4hGzwrXlANy5haJq_pT9nh2i_aJPewJ3w/viewform" +
-          `?usp=pp_url` +
+          "?usp=pp_url" +
           `&entry.1849851053=${encodeURIComponent(registrationNumber)}` +
           `&entry.1342872555=${encodeURIComponent(formData.ownerName)}` +
           `&entry.1336839005=${encodeURIComponent(formData.mobile)}`;
@@ -177,4 +177,127 @@ function TORRegistration() {
         <input
           type="text"
           name="ownerName"
-          value={formData.own
+          value={formData.ownerName}
+          onChange={handleChange}
+          required
+          style={inputStyle}
+        />
+
+        <label style={labelStyle}>
+          Do you have LCCIA active membership till 31 Dec 2025? *
+        </label>
+
+        <label>
+          <input
+            type="radio"
+            name="hasMembership"
+            value="Yes"
+            onChange={handleChange}
+            required
+          />{" "}
+          Yes
+        </label>
+        <br />
+        <label>
+          <input
+            type="radio"
+            name="hasMembership"
+            value="No"
+            onChange={handleChange}
+          />{" "}
+          No
+        </label>
+
+        <br /><br />
+
+        <label style={labelStyle}>Category You wish to play *</label>
+        <label>
+          <input
+            type="radio"
+            name="category"
+            value="Pro"
+            onChange={handleChange}
+            required
+          />{" "}
+          Pro
+        </label>
+        <br />
+        <label>
+          <input
+            type="radio"
+            name="category"
+            value="Family"
+            onChange={handleChange}
+          />{" "}
+          Family
+        </label>
+
+        <br /><br />
+
+        <label style={labelStyle}>Mobile No. (WhatsApp) *</label>
+        <input
+          type="tel"
+          name="mobile"
+          value={formData.mobile}
+          onChange={handleChange}
+          required
+          style={inputStyle}
+        />
+
+        <label style={labelStyle}>Email *</label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          style={inputStyle}
+        />
+
+        <label style={labelStyle}>Team Name</label>
+        <input
+          type="text"
+          name="teamName"
+          value={formData.teamName}
+          onChange={handleChange}
+          style={inputStyle}
+        />
+
+        <label style={{ display: "block", marginTop: "16px" }}>
+          <input
+            type="checkbox"
+            name="declaration"
+            checked={formData.declaration}
+            onChange={handleChange}
+          />{" "}
+          <strong>
+            DECLARATION*: We hereby agree that we have read and understood all
+            Rules & Regulations.
+          </strong>
+        </label>
+
+        <br />
+
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: "100%",
+            padding: "14px",
+            backgroundColor: "#D05F02",
+            color: "#fff",
+            border: "none",
+            borderRadius: "10px",
+            fontSize: "16px",
+            cursor: "pointer",
+            opacity: loading ? 0.7 : 1,
+          }}
+        >
+          {loading ? "Submitting..." : "Proceed to Payment & Upload Screenshot"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default TORRegistration;
