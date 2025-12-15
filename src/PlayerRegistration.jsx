@@ -33,7 +33,6 @@ export default function PlayerRegistration() {
     try {
       const f = e.target;
 
-      // ✅ SINGLE numeric registration number
       const registrationNumber = "2026" + String(Date.now()).slice(-6);
 
       await addDoc(collection(db, "players"), {
@@ -146,7 +145,7 @@ export default function PlayerRegistration() {
         <input name="teamName" style={inputStyle} />
         <br /><br />
 
-        {/* CHARGES */}
+        {/* CHARGES – UPDATED */}
         <div
           style={{
             background: "#fff3e8",
@@ -158,7 +157,7 @@ export default function PlayerRegistration() {
           <strong>Next Step – Player Charges</strong>
           <p style={{ marginTop: "6px" }}>
             Pro Player: ₹750 per player<br />
-            Family Player: ₹500 per player
+            Family Player: ₹300 per player
           </p>
           <em>
             Payment gateway details will be shared after submission of interest.
