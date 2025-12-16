@@ -2,18 +2,20 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "./firebase";
 
-/* 🔐 CHANGE PASSWORD HERE */
+/* 🔐 ADMIN PASSWORD */
 const ADMIN_PASSWORD = "lccia@admin2026";
 
 export default function AdminDashboard() {
   const [authorized, setAuthorized] = useState(false);
   const [password, setPassword] = useState("");
 
+  const [activeTab, setActiveTab] = useState("PLAYER");
   const [players, setPlayers] = useState([]);
+  const [tors, setTors] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  /* ---------- PASSWORD CHECK ---------- */
+  /* ---------- LOGIN ---------- */
   const handleLogin = (e) => {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
@@ -25,11 +27,12 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (authorized) {
-      fetchPlayers();
+      fetchData();
     }
   }, [authorized]);
 
-  const fetchPlayers = async () => {
+  /* ---------- FETCH DATA ---------- */
+  const fetchData = async () => {
     try {
       const q = query(
         collection(db, "players"),
@@ -37,17 +40,19 @@ export default function AdminDashboard() {
       );
 
       const snapshot = await getDocs(q);
-      const allData = snapshot.docs.map((doc) => ({
+      const all = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
 
-      // ✅ Only PLAYER registrations (exclude TOR)
-      const playerOnly = allData.filter(
-        (p) => p.name && p.playerType
-      );
+      // PLAYER REGISTRATIONS
+      const playerOnly = all.filter((p) => p.name && p.playerType);
+
+      // TOR REGISTRATIONS
+      const torOnly = all.filter((t) => t.formType === "TOR");
 
       setPlayers(playerOnly);
+      setTors(torOnly);
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -55,48 +60,74 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredPlayers = players.filter((p) => {
+  /* ---------- FILTER ---------- */
+  const data =
+    activeTab === "PLAYER" ? players : tors;
+
+  const filteredData = data.filter((d) => {
     const v = search.toLowerCase();
     return (
-      p.registrationNumber?.toLowerCase().includes(v) ||
-      p.name?.toLowerCase().includes(v) ||
-      p.mobile?.toLowerCase().includes(v) ||
-      p.email?.toLowerCase().includes(v) ||
-      p.teamName?.toLowerCase().includes(v)
+      d.registrationNumber?.toLowerCase().includes(v) ||
+      d.name?.toLowerCase().includes(v) ||
+      d.ownerName?.toLowerCase().includes(v) ||
+      d.mobile?.toLowerCase().includes(v) ||
+      d.email?.toLowerCase().includes(v) ||
+      d.teamName?.toLowerCase().includes(v)
     );
   });
 
-  /* ---------- CSV DOWNLOAD ---------- */
+  /* ---------- CSV ---------- */
   const downloadCSV = () => {
-    const headers = [
-      "Registration Number",
-      "Name",
-      "DOB",
-      "Mobile",
-      "Email",
-      "Address",
-      "Team Type",
-      "Player Type",
-      "Team Name",
-      "Payment Status",
-      "Created Date",
-    ];
+    const headers =
+      activeTab === "PLAYER"
+        ? [
+            "Registration Number",
+            "Name",
+            "Mobile",
+            "Email",
+            "Team Type",
+            "Player Type",
+            "Payment Status",
+            "Created Date",
+          ]
+        : [
+            "TOR Registration Number",
+            "Owner Name",
+            "Mobile",
+            "Email",
+            "Category",
+            "Membership",
+            "Team Name",
+            "Created Date",
+          ];
 
-    const rows = filteredPlayers.map((p) => [
-      p.registrationNumber || "",
-      p.name || "",
-      p.dob || "",
-      p.mobile || "",
-      p.email || "",
-      p.address || "",
-      p.teamType || "",
-      p.playerType || "",
-      p.teamName || "Any Team",
-      p.paymentStatus || "Pending",
-      p.createdAt?.toDate
-        ? p.createdAt.toDate().toLocaleDateString()
-        : "",
-    ]);
+    const rows = filteredData.map((d) =>
+      activeTab === "PLAYER"
+        ? [
+            d.registrationNumber,
+            d.name,
+            d.mobile,
+            d.email,
+            d.teamType,
+            d.playerType,
+            d.paymentStatus || "Pending",
+            d.createdAt?.toDate
+              ? d.createdAt.toDate().toLocaleDateString()
+              : "",
+          ]
+        : [
+            d.registrationNumber,
+            d.ownerName,
+            d.mobile,
+            d.email,
+            d.category,
+            d.hasMembership,
+            d.teamName,
+            d.createdAt?.toDate
+              ? d.createdAt.toDate().toLocaleDateString()
+              : "",
+          ]
+    );
 
     const csv =
       headers.join(",") +
@@ -104,213 +135,148 @@ export default function AdminDashboard() {
       rows.map((r) => r.map(escapeCSV).join(",")).join("\n");
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
-    link.href = url;
-    link.download = "player-registrations.csv";
+    link.href = URL.createObjectURL(blob);
+    link.download =
+      activeTab === "PLAYER"
+        ? "player-registrations.csv"
+        : "tor-registrations.csv";
     link.click();
   };
 
-  const escapeCSV = (v) => {
-    if (typeof v === "string" && v.includes(",")) {
-      return `"${v.replace(/"/g, '""')}"`;
-    }
-    return v;
-  };
+  const escapeCSV = (v) =>
+    typeof v === "string" && v.includes(",")
+      ? `"${v.replace(/"/g, '""')}"`
+      : v;
 
   /* ---------- LOGIN SCREEN ---------- */
   if (!authorized) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "#f4f6f9",
-        }}
-      >
-        <form
-          onSubmit={handleLogin}
-          style={{
-            background: "#fff",
-            padding: "30px",
-            borderRadius: "14px",
-            boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-            width: "320px",
-          }}
-        >
-          <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
-            Admin Login
-          </h3>
-
+      <Centered>
+        <form onSubmit={handleLogin} style={loginCard}>
+          <h3>Admin Login</h3>
           <input
             type="password"
-            placeholder="Enter admin password"
+            placeholder="Admin password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              marginBottom: "16px",
-            }}
+            style={input}
           />
-
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "12px",
-              backgroundColor: "#D05F02",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
-          >
-            Login
-          </button>
+          <button style={btn}>Login</button>
         </form>
-      </div>
+      </Centered>
     );
   }
 
   if (loading) {
-    return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        Loading registrations…
-      </div>
-    );
+    return <Centered>Loading…</Centered>;
   }
 
-  const total = players.length;
-  const pro = players.filter((p) => p.teamType === "Pro").length;
-  const family = players.filter((p) => p.teamType === "Family").length;
-
-  /* ---------- ADMIN DASHBOARD ---------- */
+  /* ---------- DASHBOARD ---------- */
   return (
-    <div style={{ background: "#f4f6f9", minHeight: "100vh", padding: "30px" }}>
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "auto",
-          background: "#fff",
-          padding: "30px",
-          borderRadius: "14px",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-        }}
-      >
+    <div style={page}>
+      <div style={card}>
         {/* HEADER */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "10px",
-            marginBottom: "20px",
-          }}
-        >
-          <h2 style={{ margin: 0 }}>Player Registrations (Admin)</h2>
-
-          <button
-            onClick={downloadCSV}
-            style={{
-              padding: "10px 16px",
-              backgroundColor: "#D05F02",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-          >
+        <div style={header}>
+          <h2 style={{ margin: 0 }}>Admin Dashboard</h2>
+          <button onClick={downloadCSV} style={btn}>
             Download CSV
           </button>
         </div>
 
-        {/* STATS */}
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            marginBottom: "20px",
-            flexWrap: "wrap",
-          }}
-        >
-          <StatCard label="Total Players" value={total} />
-          <StatCard label="Pro Players" value={pro} />
-          <StatCard label="Family Players" value={family} />
+        {/* TABS */}
+        <div style={tabs}>
+          <Tab
+            active={activeTab === "PLAYER"}
+            onClick={() => setActiveTab("PLAYER")}
+          >
+            Player Registrations
+          </Tab>
+          <Tab
+            active={activeTab === "TOR"}
+            onClick={() => setActiveTab("TOR")}
+          >
+            Team Owner Registrations
+          </Tab>
         </div>
 
         {/* SEARCH */}
         <input
-          placeholder="Search by name, mobile, email, reg no, team"
+          placeholder="Search…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #ccc",
-            marginBottom: "16px",
-            fontSize: "14px",
-          }}
+          style={{ ...input, marginBottom: "16px" }}
         />
 
         {/* TABLE */}
-        {filteredPlayers.length === 0 ? (
-          <p>No player registrations found.</p>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: "14px",
-              }}
-            >
-              <thead>
-                <tr style={{ background: "#fff3e8" }}>
-                  <Th>Reg No</Th>
-                  <Th>Name</Th>
-                  <Th>Mobile</Th>
-                  <Th>Email</Th>
-                  <Th>Team</Th>
-                  <Th>Player Type</Th>
-                  <Th>Payment</Th>
-                  <Th>Created</Th>
+        <div style={{ overflowX: "auto" }}>
+          <table style={table}>
+            <thead>
+              <tr style={{ background: "#fff3e8" }}>
+                {activeTab === "PLAYER" ? (
+                  <>
+                    <Th>Reg No</Th>
+                    <Th>Name</Th>
+                    <Th>Mobile</Th>
+                    <Th>Email</Th>
+                    <Th>Team</Th>
+                    <Th>Player Type</Th>
+                    <Th>Payment</Th>
+                    <Th>Created</Th>
+                  </>
+                ) : (
+                  <>
+                    <Th>TOR Reg No</Th>
+                    <Th>Owner Name</Th>
+                    <Th>Mobile</Th>
+                    <Th>Email</Th>
+                    <Th>Category</Th>
+                    <Th>Membership</Th>
+                    <Th>Team Name</Th>
+                    <Th>Created</Th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.map((d, i) => (
+                <tr key={d.id} style={{ background: i % 2 ? "#fafafa" : "#fff" }}>
+                  {activeTab === "PLAYER" ? (
+                    <>
+                      <Td>{d.registrationNumber}</Td>
+                      <Td>{d.name}</Td>
+                      <Td>{d.mobile}</Td>
+                      <Td>{d.email}</Td>
+                      <Td>{d.teamType}</Td>
+                      <Td>{d.playerType}</Td>
+                      <Td>{d.paymentStatus || "Pending"}</Td>
+                      <Td>
+                        {d.createdAt?.toDate
+                          ? d.createdAt.toDate().toLocaleDateString()
+                          : "-"}
+                      </Td>
+                    </>
+                  ) : (
+                    <>
+                      <Td>{d.registrationNumber}</Td>
+                      <Td>{d.ownerName}</Td>
+                      <Td>{d.mobile}</Td>
+                      <Td>{d.email}</Td>
+                      <Td>{d.category}</Td>
+                      <Td>{d.hasMembership}</Td>
+                      <Td>{d.teamName}</Td>
+                      <Td>
+                        {d.createdAt?.toDate
+                          ? d.createdAt.toDate().toLocaleDateString()
+                          : "-"}
+                      </Td>
+                    </>
+                  )}
                 </tr>
-              </thead>
-              <tbody>
-                {filteredPlayers.map((p, i) => (
-                  <tr
-                    key={p.id}
-                    style={{
-                      background: i % 2 === 0 ? "#fff" : "#fafafa",
-                    }}
-                  >
-                    <Td>{p.registrationNumber}</Td>
-                    <Td>{p.name}</Td>
-                    <Td>{p.mobile}</Td>
-                    <Td>{p.email}</Td>
-                    <Td>{p.teamType}</Td>
-                    <Td>{p.playerType}</Td>
-                    <Td>{p.paymentStatus || "Pending"}</Td>
-                    <Td>
-                      {p.createdAt?.toDate
-                        ? p.createdAt.toDate().toLocaleDateString()
-                        : "-"}
-                    </Td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -318,43 +284,97 @@ export default function AdminDashboard() {
 
 /* ---------- UI HELPERS ---------- */
 
-function StatCard({ label, value }) {
-  return (
-    <div
-      style={{
-        flex: 1,
-        minWidth: "160px",
-        background: "#fff3e8",
-        padding: "16px",
-        borderRadius: "10px",
-        textAlign: "center",
-      }}
-    >
-      <div style={{ fontSize: "13px", color: "#666" }}>{label}</div>
-      <div style={{ fontSize: "22px", fontWeight: 600 }}>{value}</div>
-    </div>
-  );
-}
+const page = {
+  background: "#f4f6f9",
+  minHeight: "100vh",
+  padding: "30px",
+};
 
-const Th = ({ children }) => (
-  <th
+const card = {
+  maxWidth: "1200px",
+  margin: "auto",
+  background: "#fff",
+  padding: "30px",
+  borderRadius: "14px",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+};
+
+const header = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: "16px",
+};
+
+const tabs = {
+  display: "flex",
+  gap: "8px",
+  marginBottom: "16px",
+};
+
+const Tab = ({ active, children, onClick }) => (
+  <button
+    onClick={onClick}
     style={{
-      padding: "10px",
-      border: "1px solid #ddd",
-      textAlign: "left",
+      padding: "10px 16px",
+      borderRadius: "8px",
+      border: "none",
+      cursor: "pointer",
+      background: active ? "#D05F02" : "#eee",
+      color: active ? "#fff" : "#333",
     }}
   >
     {children}
-  </th>
+  </button>
 );
 
+const Th = ({ children }) => (
+  <th style={{ padding: "10px", border: "1px solid #ddd" }}>{children}</th>
+);
 const Td = ({ children }) => (
-  <td
+  <td style={{ padding: "8px", border: "1px solid #ddd" }}>{children}</td>
+);
+
+const table = {
+  width: "100%",
+  borderCollapse: "collapse",
+  fontSize: "14px",
+};
+
+const input = {
+  width: "100%",
+  padding: "12px",
+  borderRadius: "8px",
+  border: "1px solid #ccc",
+};
+
+const btn = {
+  backgroundColor: "#D05F02",
+  color: "#fff",
+  border: "none",
+  borderRadius: "8px",
+  padding: "10px 16px",
+  cursor: "pointer",
+};
+
+const loginCard = {
+  background: "#fff",
+  padding: "30px",
+  borderRadius: "14px",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+  width: "320px",
+};
+
+const Centered = ({ children }) => (
+  <div
     style={{
-      padding: "8px",
-      border: "1px solid #ddd",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#f4f6f9",
     }}
   >
     {children}
-  </td>
+  </div>
 );
