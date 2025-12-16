@@ -2,14 +2,32 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "./firebase";
 
+/* 🔐 CHANGE PASSWORD HERE */
+const ADMIN_PASSWORD = "lccia@admin2026";
+
 export default function AdminDashboard() {
+  const [authorized, setAuthorized] = useState(false);
+  const [password, setPassword] = useState("");
+
   const [players, setPlayers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  /* ---------- PASSWORD CHECK ---------- */
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setAuthorized(true);
+    } else {
+      alert("Incorrect password");
+    }
+  };
+
   useEffect(() => {
-    fetchPlayers();
-  }, []);
+    if (authorized) {
+      fetchPlayers();
+    }
+  }, [authorized]);
 
   const fetchPlayers = async () => {
     try {
@@ -24,7 +42,7 @@ export default function AdminDashboard() {
         ...doc.data(),
       }));
 
-      // Only PLAYER registrations (exclude TOR)
+      // ✅ Only PLAYER registrations (exclude TOR)
       const playerOnly = allData.filter(
         (p) => p.name && p.playerType
       );
@@ -48,7 +66,7 @@ export default function AdminDashboard() {
     );
   });
 
-  /* ---------------- CSV DOWNLOAD ---------------- */
+  /* ---------- CSV DOWNLOAD ---------- */
   const downloadCSV = () => {
     const headers = [
       "Registration Number",
@@ -101,6 +119,65 @@ export default function AdminDashboard() {
     return v;
   };
 
+  /* ---------- LOGIN SCREEN ---------- */
+  if (!authorized) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background: "#f4f6f9",
+        }}
+      >
+        <form
+          onSubmit={handleLogin}
+          style={{
+            background: "#fff",
+            padding: "30px",
+            borderRadius: "14px",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+            width: "320px",
+          }}
+        >
+          <h3 style={{ textAlign: "center", marginBottom: "20px" }}>
+            Admin Login
+          </h3>
+
+          <input
+            type="password"
+            placeholder="Enter admin password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              marginBottom: "16px",
+            }}
+          />
+
+          <button
+            type="submit"
+            style={{
+              width: "100%",
+              padding: "12px",
+              backgroundColor: "#D05F02",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+          >
+            Login
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div style={{ padding: "40px", textAlign: "center" }}>
@@ -113,6 +190,7 @@ export default function AdminDashboard() {
   const pro = players.filter((p) => p.teamType === "Pro").length;
   const family = players.filter((p) => p.teamType === "Family").length;
 
+  /* ---------- ADMIN DASHBOARD ---------- */
   return (
     <div style={{ background: "#f4f6f9", minHeight: "100vh", padding: "30px" }}>
       <div
@@ -238,7 +316,7 @@ export default function AdminDashboard() {
   );
 }
 
-/* -------- SMALL UI HELPERS -------- */
+/* ---------- UI HELPERS ---------- */
 
 function StatCard({ label, value }) {
   return (
