@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { db } from "./firebase";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  Timestamp,
+} from "firebase/firestore";
 
 const GOOGLE_FORM_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSda2i-iQZi-tFrHnFONNe1ZmD2XQDczAdRVz63gAXDj2SPWGQ/viewform";
@@ -15,7 +20,7 @@ const inputStyle = {
   border: "1px solid #ccc",
   fontSize: "14px",
   outline: "none",
-  boxSizing: "border-box"
+  boxSizing: "border-box",
 };
 
 export default function PlayerRegistration() {
@@ -33,9 +38,26 @@ export default function PlayerRegistration() {
     try {
       const f = e.target;
 
+      // 🔐 NORMALIZED COMBO KEY
+      const nameNorm = f.name.value.trim().toLowerCase();
+      const mobileNorm = f.mobile.value.trim();
+      const emailNorm = f.email.value.trim().toLowerCase();
+
+      const uniqueKey = `${nameNorm}|${mobileNorm}|${emailNorm}`;
+
+      const docRef = doc(db, "players", uniqueKey);
+      const existing = await getDoc(docRef);
+
+      if (existing.exists()) {
+        alert(
+          "You have already registered using the same Name, Mobile Number and Email.\n\nIf this is a mistake, please contact the admin."
+        );
+        return;
+      }
+
       const registrationNumber = "2026" + String(Date.now()).slice(-6);
 
-      await addDoc(collection(db, "players"), {
+      await setDoc(docRef, {
         registrationNumber,
         name: f.name.value,
         dob: f.dob.value,
@@ -47,7 +69,8 @@ export default function PlayerRegistration() {
         teamName: f.teamName.value || "Any Team",
         paymentStatus: "Pending",
         documents: "Uploaded via Google Form",
-        createdAt: Timestamp.now()
+        uniqueKey,
+        createdAt: Timestamp.now(),
       });
 
       alert(
@@ -83,7 +106,7 @@ export default function PlayerRegistration() {
           background: "#ffffff",
           padding: "35px",
           borderRadius: "14px",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.08)"
+          boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
         }}
       >
         {/* HEADER */}
@@ -145,13 +168,13 @@ export default function PlayerRegistration() {
         <input name="teamName" style={inputStyle} />
         <br /><br />
 
-        {/* CHARGES */}
+        {/* ✅ NEXT STEP – PLAYER CHARGES (RESTORED IN FULL) */}
         <div
           style={{
             background: "#fff3e8",
             padding: "16px",
             borderRadius: "10px",
-            marginBottom: "16px"
+            marginBottom: "16px",
           }}
         >
           <strong>Next Step – Player Charges</strong>
@@ -164,7 +187,6 @@ export default function PlayerRegistration() {
             Payment gateway details will be shared after submission of interest.
           </em>
 
-          {/* ✅ NEW HELP TEXT */}
           <p style={{ marginTop: "10px", fontSize: "14px" }}>
             (If you know your team owner please connect for player registration
             payment with him/her)
@@ -185,7 +207,7 @@ export default function PlayerRegistration() {
           style={{
             background: "#eef3f8",
             padding: "16px",
-            borderRadius: "10px"
+            borderRadius: "10px",
           }}
         >
           <strong>Document Upload</strong>
@@ -208,7 +230,7 @@ export default function PlayerRegistration() {
             border: "none",
             borderRadius: "10px",
             fontSize: "16px",
-            cursor: "pointer"
+            cursor: "pointer",
           }}
         >
           Proceed to Document Upload
