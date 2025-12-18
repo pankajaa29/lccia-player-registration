@@ -1,11 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { db } from "./firebase";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  Timestamp,
-} from "firebase/firestore";
+import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
+
+/* ⏰ REGISTRATION CLOSE TIME
+   18 Dec 2025, 6:00 PM IST = 12:30 PM UTC */
+const REGISTRATION_CLOSE_UTC = new Date("2025-12-18T12:30:00Z");
 
 const GOOGLE_FORM_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSda2i-iQZi-tFrHnFONNe1ZmD2XQDczAdRVz63gAXDj2SPWGQ/viewform";
@@ -24,7 +23,15 @@ const inputStyle = {
 };
 
 export default function PlayerRegistration() {
+  const [isClosed, setIsClosed] = useState(false);
+
   useEffect(() => {
+    // ⏰ Check registration close
+    if (new Date() >= REGISTRATION_CLOSE_UTC) {
+      setIsClosed(true);
+    }
+
+    // Thank you redirect
     const params = new URLSearchParams(window.location.search);
     if (params.get("thankyou") === "true") {
       alert("Thank you! Your registration and document submission is complete.");
@@ -34,6 +41,14 @@ export default function PlayerRegistration() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 🔒 FINAL SAFETY CHECK
+    if (new Date() >= REGISTRATION_CLOSE_UTC) {
+      alert(
+        "Player registration is closed.\n\nRegistrations closed at 6:00 PM IST on 18 Dec 2025."
+      );
+      return;
+    }
 
     try {
       const f = e.target;
@@ -95,6 +110,21 @@ export default function PlayerRegistration() {
       alert("Submission failed. Please try again.");
     }
   };
+
+  /* 🚫 CLOSED SCREEN */
+  if (isClosed) {
+    return (
+      <div style={{ textAlign: "center", padding: "80px" }}>
+        <img src="/lccia-logo.png" alt="LCCIA Logo" style={{ height: "120px" }} />
+        <h2 style={{ marginTop: "30px" }}>Player Registration Closed</h2>
+        <p>
+          Registrations closed at{" "}
+          <strong>6:00 PM IST on 18 Dec 2025</strong>.
+        </p>
+        <p>Please contact the organizers for any queries.</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ background: "#f4f6f9", minHeight: "100vh", padding: "30px" }}>
@@ -168,7 +198,7 @@ export default function PlayerRegistration() {
         <input name="teamName" style={inputStyle} />
         <br /><br />
 
-        {/* ✅ NEXT STEP – PLAYER CHARGES (RESTORED IN FULL) */}
+        {/* NEXT STEP – PLAYER CHARGES */}
         <div
           style={{
             background: "#fff3e8",
