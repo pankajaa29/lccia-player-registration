@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const [players, setPlayers] = useState([]);
   const [tors, setTors] = useState([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   /* ---------- LOGIN ---------- */
   const handleLogin = (e) => {
@@ -33,6 +33,7 @@ export default function AdminDashboard() {
 
   /* ---------- FETCH DATA ---------- */
   const fetchData = async () => {
+    setLoading(true);
     try {
       const q = query(
         collection(db, "players"),
@@ -45,26 +46,29 @@ export default function AdminDashboard() {
         ...doc.data(),
       }));
 
-      // PLAYER REGISTRATIONS
-      const playerOnly = all.filter((p) => p.name && p.playerType);
+      // Player registrations (normal form)
+      const playerOnly = all.filter(
+        (d) => d.name && d.playerType
+      );
 
-      // TOR REGISTRATIONS
-      const torOnly = all.filter((t) => t.formType === "TOR");
+      // TOR registrations
+      const torOnly = all.filter(
+        (d) => d.formType === "TOR"
+      );
 
       setPlayers(playerOnly);
       setTors(torOnly);
-      setLoading(false);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch error:", err);
+    } finally {
       setLoading(false);
     }
   };
 
   /* ---------- FILTER ---------- */
-  const data =
-    activeTab === "PLAYER" ? players : tors;
+  const activeData = activeTab === "PLAYER" ? players : tors;
 
-  const filteredData = data.filter((d) => {
+  const filteredData = activeData.filter((d) => {
     const v = search.toLowerCase();
     return (
       d.registrationNumber?.toLowerCase().includes(v) ||
@@ -87,8 +91,9 @@ export default function AdminDashboard() {
             "Email",
             "Team Type",
             "Player Type",
+            "Team Name",
             "Payment Status",
-            "Created Date",
+            "Created At",
           ]
         : [
             "TOR Registration Number",
@@ -98,7 +103,7 @@ export default function AdminDashboard() {
             "Category",
             "Membership",
             "Team Name",
-            "Created Date",
+            "Created At",
           ];
 
     const rows = filteredData.map((d) =>
@@ -110,9 +115,10 @@ export default function AdminDashboard() {
             d.email,
             d.teamType,
             d.playerType,
+            d.teamName,
             d.paymentStatus || "Pending",
             d.createdAt?.toDate
-              ? d.createdAt.toDate().toLocaleDateString()
+              ? d.createdAt.toDate().toLocaleString()
               : "",
           ]
         : [
@@ -124,7 +130,7 @@ export default function AdminDashboard() {
             d.hasMembership,
             d.teamName,
             d.createdAt?.toDate
-              ? d.createdAt.toDate().toLocaleDateString()
+              ? d.createdAt.toDate().toLocaleString()
               : "",
           ]
     );
@@ -202,7 +208,7 @@ export default function AdminDashboard() {
 
         {/* SEARCH */}
         <input
-          placeholder="Search…"
+          placeholder="Search by name, mobile, email, team, reg no…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{ ...input, marginBottom: "16px" }}
@@ -219,8 +225,9 @@ export default function AdminDashboard() {
                     <Th>Name</Th>
                     <Th>Mobile</Th>
                     <Th>Email</Th>
-                    <Th>Team</Th>
+                    <Th>Team Type</Th>
                     <Th>Player Type</Th>
+                    <Th>Team Name</Th>
                     <Th>Payment</Th>
                     <Th>Created</Th>
                   </>
@@ -249,10 +256,11 @@ export default function AdminDashboard() {
                       <Td>{d.email}</Td>
                       <Td>{d.teamType}</Td>
                       <Td>{d.playerType}</Td>
+                      <Td>{d.teamName || "-"}</Td>
                       <Td>{d.paymentStatus || "Pending"}</Td>
                       <Td>
                         {d.createdAt?.toDate
-                          ? d.createdAt.toDate().toLocaleDateString()
+                          ? d.createdAt.toDate().toLocaleString()
                           : "-"}
                       </Td>
                     </>
@@ -264,10 +272,10 @@ export default function AdminDashboard() {
                       <Td>{d.email}</Td>
                       <Td>{d.category}</Td>
                       <Td>{d.hasMembership}</Td>
-                      <Td>{d.teamName}</Td>
+                      <Td>{d.teamName || "-"}</Td>
                       <Td>
                         {d.createdAt?.toDate
-                          ? d.createdAt.toDate().toLocaleDateString()
+                          ? d.createdAt.toDate().toLocaleString()
                           : "-"}
                       </Td>
                     </>
@@ -331,6 +339,7 @@ const Tab = ({ active, children, onClick }) => (
 const Th = ({ children }) => (
   <th style={{ padding: "10px", border: "1px solid #ddd" }}>{children}</th>
 );
+
 const Td = ({ children }) => (
   <td style={{ padding: "8px", border: "1px solid #ddd" }}>{children}</td>
 );
